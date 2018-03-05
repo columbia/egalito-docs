@@ -46,8 +46,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Egalito'
-copyright = u'2018, David Williams-King, Hidenori Kobayashi'
-author = u'David Williams-King, Hidenori Kobayashi'
+copyright = u'2018, David Williams-King and Hidenori Kobayashi'
+author = u'David Williams-King and Hidenori Kobayashi'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

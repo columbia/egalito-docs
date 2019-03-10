@@ -9,7 +9,9 @@ Welcome to Egalito's documentation!
    :caption: Contents:
 
    tutorial
+   chunk
    elfgen
+   loader
    instrument
 
 

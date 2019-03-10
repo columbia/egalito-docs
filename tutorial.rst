@@ -8,44 +8,66 @@ Egalito currently runs on most Linux flavours, on 64-bit x86_64 and aarch64
 architectures. To run Egalito, you will need a few dependencies (described in
 the README), specifically as of this writing::
 
-    $ sudo apt-get install libreadline-dev gdb lsb-release
+    $ sudo apt-get install make g++ libreadline-dev gdb lsb-release
 
-Please also install debug packages for libc and libstdc++ (``libc6-dbg`` and
-``libstdc++6-7-dbg`` on Debian-derived systems). Although Egalito does not need
-debug symbols in general, we require symbols for these packages to perform
+Please also install debug packages for libc and libstdc++ (e.g., ``libc6-dbg``
+and ``libstdc++6-7-dbg`` on Debian-derived systems). Although Egalito does not
+need debug symbols in general, we require symbols for these packages to perform
 loader emulation correctly.
 
 Now, obtain Egalito source code by cloning with the ``--recursive`` flag to
 bring in all submodules::
 
-    $ git clone [[redacted]]/egalito.git --recursive
+    $ git clone [[redacted]]/egalito.git --recursive --branch merging
 
-Building Egalito
-----------------
+Building and Running Egalito
+----------------------------
 
 To compile Egalito, simply run ``make`` from the root directory::
 
     $ make -j 8
 
 Change 8 to your available number of CPU cores (though the codebase is large
-enough that we recommend using 8 cores). For the first build, the config target
-will create a default ``config/config.h`` based on your architecture and Linux
-distribution (you may wish to edit this file). The dep target will then compile
-all dependencies, including ``dep/rtld`` which must be built on the same system
-that the Egalito loader will eventually be executed on. For cross-compilation,
-be sure to generate the ``dep/rtld`` definitions on the target system. Finally,
-make will build the main ``src`` directory, followed by ``app`` and ``test``.
+enough that we recommend using at least 8 cores). For the first build, the
+config target will create a default ``config/config.h`` based on your
+architecture and Linux distribution (you may wish to edit this file). The dep
+target will then compile all dependencies, including ``dep/rtld`` which must be
+built on the same system that the Egalito loader will eventually be executed
+on. For cross-compilation, be sure to generate the ``dep/rtld`` definitions on
+the target system. Finally, make will build the main ``src`` directory,
+followed by ``app`` and ``test``.
 
-Egalito's ``test/binary`` subdirectory contains binaries and source code of
-programs that can be used as test input (including some large cases like
-Nginx). Using a simple hello world program is a good way to see if Egalito has
-built correctly::
+Egalito has three primary modes: mirror ELF generation, union ELF generation,
+and loader mode. These modes can be tested with a hello world program::
+
+    $ cd app ; ./etelf -m ../src/ex/hello hello ; ./hello ; cd -
+
+    $ cd app ; ./etelf -u ../src/ex/hello hello ; ./hello ; cd -
 
     $ cd src ; ./loader ex/hello ; cd -
 
-We have a small set of unit tests that can be run with::
+For detailed information about these modes, see `ELF generation <elfgen.html>`_
+and `Loader details <loader.html>`_.
 
-    $ cd test ; ./runner ; cd -
+Applying Hardening
+------------------
+
+The ``etelf`` program mentioned earlier performs no-op transformations and is a
+helpful reference for writing a standalone ELF hardening tool. To access the
+hardening mechanisms within the Egalito codebase, try the ``etharden``
+program::
+
+    $ cd app ; ./etharden -m --cfi ../src/ex/hello hello ; ./hello ; cd -
+
+This program allows you to specify multiple transformations to perform,
+although be warned that many combinations are nonsensical.
+
+Test Suite
+----------
+
+We have a small set of code-generation tests that can be run with::
+
+    $ cd test/codegen ; make ; cd -
 
 Our main integration tests, which can take a long time to run, are executed as
 follows::
@@ -58,14 +80,7 @@ where our test suite is executed on different platforms and architectures.
 Introduction to the Egalito Shell
 ---------------------------------
 
-The main ``src`` directory contains core Egalito code, which is compiled into
-``libegalito.so``. The core internal tree structure is derived from ``Chunk``
-in ``src/chunk/chunk.h``; most functionality is implemented as *passes* that
-iterate over Chunks, and these passes are in ``src/pass/``. The ``loader``
-executable can be used to parse and run programs under Egalito in a single
-step.
-
-Meanwhile, the main ``app`` directory contains the Egalito *shell*
+The ``app`` directory contains the Egalito *shell*
 (``etshell``), which allows fine-grained invocation of passes and other
 functionality. For example, try the following (note that your system may have
 different addresses or instructions)::
@@ -152,6 +167,25 @@ transformations. Not all defenses and passes can be combined or support
 archives, but if you are trying to do something reasonable and it does not
 work, please file a bug report.
 
+Creating a Tool with Egalito
+----------------------------
+
+We have an out-of-tree example app repo which includes Egalito as a submodule,
+which is a good starting point for most people. You can also make modifications
+within the Egalito source tree (probably create new passes inside
+``src/pass/``) and add options to ``etharden`` or the Egalito shell
+(``app/shell/disass.cpp``) to invoke the new functionality. 
+
+To add functionality to loader mode, create new passes in ``src/pass``, and
+then add invocations to ``EgalitoLoader::otherPasses()``. Then simply run
+``./loader`` to invoke your new code. We provide an ``isFeatureEnabled`` which
+checks if environment variables are set, allowing multiple defenses to co-exist
+(e.g. ``EGALITO_DEBLOAT``, ``EGALITO_LOG_CALL``, ``EGALITO_USE_RETPOLINES``,
+...).
+
+Final note: running ``make`` inside the ``app`` directory will automatically
+make the ``src`` directory too.
+
 A Note about Logging
 --------------------
 
@@ -184,27 +218,6 @@ Log messages are written as follows (requires ``log/log.h``)::
 The default log level for most categories is 10, so messages of level 9 or less
 will be printed. Messages of level 0 are supposed to not be filtered out unless
 removed at compile-time for a release build.
-
-Creating a Tool with Egalito
-----------------------------
-
-One way to add defenses to Egalito is to create new passes in ``src/pass``,
-then add invocations to ``EgalitoLoader::otherPasses()``. Then simply run
-``./loader`` to invoke your new code. We provide an ``isFeatureEnabled`` which
-checks if environment variables are set, allowing multiple defenses to co-exist
-(e.g. ``EGALITO_DEBLOAT``, ``EGALITO_LOG_CALL``, ``EGALITO_USE_RETPOLINES``,
-...).
-
-However, a cleaner way to make a tool is to develop your own subdirectory
-inside ``app/``. Look at our smart objdump replacement tool as a starting
-point. Your tool will link with ``libegalito.so``. This works for analysis
-tools, though if you wish to run the transformed code, we still recommend
-modifying the loader. In any case, you will probably also wish to add a shell
-command to run any passes you create -- just append to the end of
-``app/shell/disass.cpp``.
-
-Final note: running ``make`` inside the ``app`` directory will automatically
-make the ``src`` directory too.
 
 Getting Involved
 ----------------

@@ -9,6 +9,7 @@ Welcome to Egalito's documentation!
    :caption: Contents:
 
    tutorial
+   elfgen
    instrument
 
 

@@ -15,10 +15,12 @@ and ``libstdc++6-7-dbg`` on Debian-derived systems). Although Egalito does not
 need debug symbols in general, we require symbols for these packages to perform
 loader emulation correctly.
 
+    $ sudo apt-get install libc6-dbg libstdc++6-7-dbg  # names may differ
+
 Now, obtain Egalito source code by cloning with the ``--recursive`` flag to
 bring in all submodules::
 
-    $ git clone [[redacted]]/egalito.git --recursive --branch merging
+    $ git clone git@github.com:columbia/egalito.git --recursive
 
 Building and Running Egalito
 ----------------------------

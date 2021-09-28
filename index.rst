@@ -13,7 +13,7 @@ Welcome to Egalito's documentation!
    elfgen
    loader
    instrument
-
+   structure
 
 Indices and tables
 ==================

@@ -12,7 +12,7 @@ Chunks that have a Position often store it relative to other Chunks, and regardl
 Chunk Class Diagram
 -------------------
 
-Here is a diagram of the main classes that implement Chunk :
+Here is a diagram of the main classes that implement the Chunk interface:
 
 .. image:: img/chunk1.jpg
 

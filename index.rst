@@ -9,11 +9,11 @@ Welcome to Egalito's documentation!
    :caption: Contents:
 
    tutorial
+   structure
    chunk
    elfgen
    loader
    instrument
-   structure
 
 Indices and tables
 ==================

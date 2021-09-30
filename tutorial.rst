@@ -13,7 +13,7 @@ the README), specifically as of this writing::
 Please also install debug packages for libc and libstdc++ (e.g., ``libc6-dbg``
 and ``libstdc++6-7-dbg`` on Debian-derived systems). Although Egalito does not
 need debug symbols in general, we require symbols for these packages to perform
-loader emulation correctly.
+loader emulation correctly::
 
     $ sudo apt-get install libc6-dbg libstdc++6-7-dbg  # names may differ
 

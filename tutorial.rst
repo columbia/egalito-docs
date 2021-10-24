@@ -221,6 +221,13 @@ The default log level for most categories is 10, so messages of level 9 or less
 will be printed. Messages of level 0 are supposed to not be filtered out unless
 removed at compile-time for a release build.
 
+To add a new debug category for your Egalito-based app, use the following::
+
+    #undef DEBUG_GROUP
+    #define DEBUG_GROUP myapp
+    #define D_myapp 9
+    #include "log/log.h"
+
 Getting Involved
 ----------------
 

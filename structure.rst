@@ -13,6 +13,7 @@ There are several subdirectories of interest within the ``src`` directory. Basic
 - ``instr`` : Contains implementations of different types of instructions including control flow instruction, linked instruction, isolated instruction etc.
 
 - ``disasm`` : Low-level disassembly library integration, supporting Capstone (with Distorm3 on x86) and a RISC-V disassembler.
+
     - The most useful function is `Disassemble::instruction` in `src/disasm/disassemble.h <https://github.com/columbia/egalito/blob/master/src/disasm/disassemble.h>`_ (there are higher-level disassembly operations too, like functions).
     - There is also `Reassemble::instruction` in `src/disasm/reassemble.h <https://github.com/columbia/egalito/blob/master/src/disasm/reassemble.h>`_ (note: requires `USE_KEYSTONE=1` in the Makefile).
 

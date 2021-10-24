@@ -16,11 +16,33 @@ Here is a diagram of the main classes that implement the Chunk interface:
 
 .. image:: img/chunk1.jpg
 
+Solid diamonds represent class composition.
 Download this image as `JPG <_images/chunk1.jpg>`_, `SVG <_images/chunk1.svg>`_, or `PDF <_images/chunk1.pdf>`_.
 
+A Module represents an executable or ELF file, parsed into memory; Library represents an ELF file that has not been parsed.
+(ElfSpace is the low-level ELF representation.) Functions, (Basic) Blocks, and Instructions are the main objects.
+Global variables are represented in DataVariable. References to symbols that may not have been parsed (in a different Library) are ExternalSymbols.
 
-Chunk High-Level View
----------------------
+An in-memory Chunk hierarchy can be turned back into an executable though Egalito's code generation mechanism.
+There is also partial support for a binary "archive" serialization file format.
+
+
+Important Non-Chunk Types
+-------------------------
+
+`Link <https://github.com/columbia/egalito/blob/master/src/chunk/link.h>`_ forms its own inheritance hierarchy.
+There are many types of Links from NormalLink to PLTLink to UnresolvedLink.
+
+Every Instruction has an `InstructionSemantic <https://github.com/columbia/egalito/blob/master/src/instr/semantic.h>`_, which is the base class for various types of instruction details.
+These classes are for the most part platform-independent (e.g. LinkedInstruction, IsolatedInstruction), but
+by necessity some are platform-specific.
+
+Assembly is an abstraction of the disassembly library output; it can
+often be discarded and reconstructed, and hence uses `std::shared_ptr` (unlike most of the Chunk hierarchy).
+
+
+Writing Code with Chunks
+------------------------
 
 Program is the root object type, and Module has various list classes as its children (and provides getters for each).
 However, nearly all other classes have homogenous children types.
@@ -55,17 +77,3 @@ In other words, code tends to look more like this::
     }
 
 For a more complete example, start with `src/pass/stackxor.cpp <https://github.com/columbia/egalito/blob/master/src/pass/stackxor.cpp>`_.
-
-Important Non-Chunk Types
--------------------------
-
-`Link <https://github.com/columbia/egalito/blob/master/src/chunk/link.h>`_ forms its own inheritance hierarchy.
-There are many types of Links from NormalLink to PLTLink to UnresolvedLink.
-
-Every Instruction has an `InstructionSemantic <https://github.com/columbia/egalito/blob/master/src/instr/semantic.h>`_, which is the base class for various types of instruction details.
-These classes are for the most part platform-independent (e.g. LinkedInstruction, IsolatedInstruction), but
-by necessity some are platform-specific.
-
-Assembly is an abstraction of the disassembly library output; it can
-often be discarded and reconstructed, and hence uses `std::shared_ptr` (unlike most of the Chunk hierarchy).
-
